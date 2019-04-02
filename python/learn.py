@@ -9,7 +9,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from storage import load
 
-processedJAFFE = load('processedJAFFE')
+processedJAFFE = load('../data/kirsch_LBP_JAFFE')
 data = [element[1] for element in processedJAFFE]
 labels = [element[2] for element in processedJAFFE]
 processedJAFFE = None
@@ -20,10 +20,15 @@ xTrain, xTest, yTrain, yTest = train_test_split(data,
 
 parameters = {
     'C': [
-        1e-5, 1e-4, 1e-3
+        1e-8, 2e-8, 4e-8, 7e-8,
+        1e-7, 2e-7, 4e-7, 7e-7,
+        1e-6, 2e-6, 4e-6, 7e-6,
+        1e-5, 2e-5, 4e-5, 7e-5,
+        1e-4, 2e-4, 4e-4, 7e-4,
+        1e-3, 2e-3
     ],
     'gamma': [
-        1.9e-5
+        0.0002, 0.00009, 0.00007, 0.00005
     ],
 }
 

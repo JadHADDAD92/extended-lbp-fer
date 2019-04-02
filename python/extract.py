@@ -11,10 +11,10 @@ from scipy.ndimage import convolve
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
 
-from storage import save
+from storage import save, load
 
 def cropFace(image):
-    faceClassifier = cv2.CascadeClassifier('./haarcascade/haarcascade_frontalface_alt.xml')
+    faceClassifier = cv2.CascadeClassifier('../haarcascade/haarcascade_frontalface_alt.xml')
     faces = faceClassifier.detectMultiScale(image)
     #get first face coordinates
     xFace, yFace, wFace, hFace = faces[0]
@@ -95,17 +95,21 @@ def LBPH(img, gridX, gridY):
     return feature
 
 def extractFeature(image):
+    """ extract features from image
+    """
     # preprocessing
     image = cv2.equalizeHist(image)
-    image = cv2.bilateralFilter(image, 5, 30, 20)
+    for _ in range(5):
+        image = cv2.bilateralFilter(image, 9, 250, 250)
     # extract face
     image = cropFace(image)
     # rescale to 77x77 (without borders => 75x75)
     image = rescale(image, 77.0/image.shape[0], anti_aliasing=True, multichannel=False)
-    filteredImages = kirsch(image)
+    # filteredImages = kirsch(image)
     feature = np.array([], dtype=np.uint8)
-    for _key, filteredImage in filteredImages.items():
-        feature = np.concatenate((feature, LBPH(hvnLBPWithoutBorders(filteredImage), 25, 25)))
+    # for _key, filteredImage in filteredImages.items():
+    lbp = hvnLBPWithoutBorders(image)
+    feature = np.concatenate((feature, LBPH(lbp, 25, 25)))
     return feature
 
 
@@ -120,17 +124,15 @@ imgsPaths = glob(directoryPath + '/*.tiff')
 
 features = []
 index = 1
-
-for imgPath in imgsPaths:
+JAFFE = load('../data/JAFFE')
+for personName, emotion, image in JAFFE:
     a = time()
-    filename = Path(imgPath).name
-    _personName, emotion = parseJAFFEName(filename)
-    res = [ filename, extractFeature(cv2.imread(imgPath, 0)), emotion ]
+    res = [ personName, extractFeature(image), emotion ]
     features.append(res)
     print(time()-a)
-    print("%d/%d"%(index, len(imgsPaths)), filename, emotion)
+    print("%d/%d"%(index, len(JAFFE)), personName, emotion)
     index = index + 1
 
 now = datetime.now().isoformat()
 print('saving file: ', 'processedJAFFE%s'%now)
-save('processedJAFFE%s'%now, features)
+save('../data/hvnLBP_JAFFE', features)
