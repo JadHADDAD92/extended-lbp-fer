@@ -107,6 +107,51 @@ def dLBP(image, angle=0):
     return result
 
 @jit(nopython=True)
+def TLPPixel (centre, pixel, threshold):
+    """ compute neighboor value for upper and lower
+    """
+    # -1
+    if(pixel + threshold < centre):
+        return np.array([0, 1], dtype=np.uint8)
+    # 1
+    elif(pixel > threshold + centre):
+        return np.array([1, 0], dtype=np.uint8)
+    # 0
+    else:
+        return np.array([0, 0], dtype=np.uint8)
+
+@jit(nopython=True)
+def TLPBloc(arr, t):
+    """ compute pixel value ternary local pattern
+    """
+    centrePixel = arr[1, 1]
+    tlpup = np.empty_like(arr)
+    tlplo = np.empty_like(arr)
+    tlpup[0, 0], tlplo[0, 0] = TLPPixel(centrePixel, arr[0, 0], threshold=t)
+    tlpup[0, 1], tlplo[0, 1] = TLPPixel(centrePixel, arr[0, 1], threshold=t)
+    tlpup[0, 2], tlplo[0, 2] = TLPPixel(centrePixel, arr[0, 2], threshold=t)
+    tlpup[1, 2], tlplo[1, 2] = TLPPixel(centrePixel, arr[1, 2], threshold=t)
+    tlpup[2, 2], tlplo[2, 2] = TLPPixel(centrePixel, arr[2, 2], threshold=t)
+    tlpup[2, 1], tlplo[2, 1] = TLPPixel(centrePixel, arr[2, 1], threshold=t)
+    tlpup[2, 0], tlplo[2, 0] = TLPPixel(centrePixel, arr[2, 0], threshold=t)
+    tlpup[1, 0], tlplo[1, 0] = TLPPixel(centrePixel, arr[1, 0], threshold=t)
+    return np.array([generatePattern(tlpup), generatePattern(tlplo)], np.uint8)
+
+@jit(nopython=True)
+def TLP(image, threshold):
+    """ generate the upper and lower images of ternary local pattern
+    """
+    upper = np.empty_like(image)
+    lower = np.empty_like(image)
+    height = image.shape[0]
+    width = image.shape[1]
+    for w in range(1, width - 1):
+        for h in range(1, height - 1):
+            subImg = image[h-1:h+2, w-1:w+2]
+            upper[h, w], lower[h, w] = TLPBloc(subImg, threshold)
+    return [upper, lower]
+
+@jit(nopython=True)
 def generatePattern(matrix):
     """ generate pattern of LBP (clockwise)
     """
