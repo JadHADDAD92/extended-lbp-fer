@@ -177,17 +177,17 @@ def hvnLBPWithoutBorders(image):
     return newImage
 
 @jit(nopython=True)
-def LBPH(img, gridX, gridY):
+def LBPH(image, gridX, gridY):
     """ generate LBP histogram
     """
-    cellWidth = img.shape[1] // gridX
-    cellHeight = img.shape[0] // gridY
+    cellWidth = image.shape[1] // gridX
+    cellHeight = image.shape[0] // gridY
     
     feature = np.array((), dtype=np.uint8)
     for x in range(0, gridX*cellWidth, cellWidth):
         for y in range(0, gridY*cellHeight, cellHeight):
             # extract cell
-            subImg = img[y:y+cellHeight, x:x+cellWidth]
+            subImg = image[y:y+cellHeight, x:x+cellWidth]
             # construct histogram
             hist, _binEdge = np.histogram(subImg.ravel(), bins=256)
             # concatenate histograms 
