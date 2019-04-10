@@ -65,6 +65,48 @@ def kirsch(image):
     }
 
 @jit(nopython=True)
+def dLBPPixel(image, angle):
+    """ compute dLBP pixel value
+    """
+    if angle==0:
+        elements = np.array([image[4, 8], image[4, 7], image[4, 6], image[4, 5],
+                             image[4, 4], image[4, 3], image[4, 2], image[4, 1],
+                             image[4, 0]], dtype=np.uint8)
+    elif angle==45:
+        elements = np.array([image[8, 0], image[7, 1], image[6, 2], image[5, 3],
+                             image[4, 4], image[3, 5], image[2, 6], image[1, 7],
+                             image[0, 8]], dtype=np.uint8)
+    elif angle==90:
+        elements = np.array([image[8, 4], image[7, 4], image[6, 4], image[5, 4],
+                             image[4, 4], image[3, 4], image[2, 4], image[1, 4],
+                             image[0, 4]], dtype=np.uint8)
+    elif angle==135:
+        elements = np.array([image[8, 8], image[7, 7], image[6, 6], image[5, 5],
+                             image[4, 4], image[3, 3], image[2, 2], image[1, 1],
+                             image[0, 0]], dtype=np.uint8)
+    return ((elements[4] > elements[8])<<0) + \
+           ((elements[4] > elements[7])<<1) + \
+           ((elements[4] > elements[6])<<2) + \
+           ((elements[4] > elements[5])<<3) + \
+           ((elements[4] > elements[3])<<4) + \
+           ((elements[4] > elements[2])<<5) + \
+           ((elements[4] > elements[1])<<6) + \
+           ((elements[4] > elements[0])<<7)
+
+@jit(nopython=True)
+def dLBP(image, angle=0):
+    """ compute directional LBP
+    """
+    height = image.shape[0]
+    width = image.shape[1]
+    result = np.empty((height - 8, width - 8), dtype=np.uint8)
+    for w in range(4, width - 4):
+        for h in range(4, height - 4):
+            subImg = image[h-4:h+5, w-4:w+5]
+            result[h-4, w-4] = dLBPPixel(subImg, angle)
+    return result
+
+@jit(nopython=True)
 def generatePattern(matrix):
     """ generate pattern of LBP (clockwise)
     """
