@@ -1,3 +1,6 @@
+""" extract features
+"""
+from time import time
 import cv2
 import numpy as np
 from datetime import datetime
@@ -14,6 +17,8 @@ from skimage.transform import rescale
 from storage import save, load
 
 def cropFace(image):
+    """ crop face from a given image
+    """
     faceClassifier = cv2.CascadeClassifier('../haarcascade/haarcascade_frontalface_alt.xml')
     faces = faceClassifier.detectMultiScale(image)
     #get first face coordinates
@@ -22,35 +27,37 @@ def cropFace(image):
     return croppedFace
 
 def kirsch(image):
+    """ compute the 8 filters of kirsch
+    """
     return {
-         "N" : cv2.filter2D(image, -1, np.array([[-3, -3, -3],
-                                                 [-3,  0, -3],
-                                                 [ 5,  5,  5]
-                                                ])),
+        "N" : cv2.filter2D(image, -1, np.array([[-3, -3, -3],
+                                                [-3,  0, -3],
+                                                [ 5,  5,  5]
+                                               ])),
         "NE" : cv2.filter2D(image, -1, np.array([[-3, -3, -3],
                                                  [ 5,  0, -3],
                                                  [ 5,  5, -3]
                                                 ])),
-         "E" : cv2.filter2D(image, -1, np.array([[5, -3, -3],
-                                                 [5,  0, -3],
-                                                 [5, -3, -3]
-                                                ])),
+        "E" : cv2.filter2D(image, -1, np.array([[5, -3, -3],
+                                                [5,  0, -3],
+                                                [5, -3, -3]
+                                               ])),
         "SE" : cv2.filter2D(image, -1, np.array([[ 5,  5, -3],
                                                  [ 5,  0, -3],
                                                  [-3, -3, -3]
                                                 ])),
-         "S" : cv2.filter2D(image, -1, np.array([[ 5,  5,  5],
-                                                 [-3,  0, -3],
-                                                 [-3, -3, -3]
-                                                ])),
+        "S" : cv2.filter2D(image, -1, np.array([[ 5,  5,  5],
+                                                [-3,  0, -3],
+                                                [-3, -3, -3]
+                                               ])),
         "SW" : cv2.filter2D(image, -1, np.array([[-3,  5,  5],
                                                  [-3,  0,  5],
                                                  [-3, -3, -3]
                                                 ])),
-         "W" : cv2.filter2D(image, -1, np.array([[-3, -3, 5],
-                                                 [-3,  0, 5],
-                                                 [-3, -3, 5]
-                                                ])),
+        "W" : cv2.filter2D(image, -1, np.array([[-3, -3, 5],
+                                                [-3,  0, 5],
+                                                [-3, -3, 5]
+                                               ])),
         "NW" : cv2.filter2D(image, -1, np.array([[-3, -3, -3],
                                                  [-3,  0,  5],
                                                  [-3,  5,  5]
@@ -59,10 +66,14 @@ def kirsch(image):
 
 @jit(nopython=True)
 def generatePattern(matrix):
+    """ generate pattern of LBP (clockwise)
+    """
     return matrix[0, 0] + (matrix[0, 1]<<1) + (matrix[0, 2]<<2) + (matrix[1, 2]<<3) + \
            (matrix[2, 2]<<4) + (matrix[2, 1]<<5) + (matrix[2, 0]<<6) + (matrix[1, 0]<<7)
 
 def hvnLBPWithoutBorders(image):
+    """ computer horizontal and vertical LBP ( hvnLBP )
+    """
     height, width = image.shape
     newImage = np.empty([height -2, width -2], dtype=np.uint8)
     for i in range(1, height - 1):
@@ -80,6 +91,8 @@ def hvnLBPWithoutBorders(image):
 
 @jit(nopython=True)
 def LBPH(img, gridX, gridY):
+    """ generate LBP histogram
+    """
     cellWidth = img.shape[1] // gridX
     cellHeight = img.shape[0] // gridY
     
@@ -125,9 +138,9 @@ imgsPaths = glob(directoryPath + '/*.tiff')
 features = []
 index = 1
 JAFFE = load('../data/JAFFE')
-for personName, emotion, image in JAFFE:
+for personName, emotion, img in JAFFE:
     a = time()
-    res = [ personName, extractFeature(image), emotion ]
+    res = [ personName, extractFeature(img), emotion ]
     features.append(res)
     print(time()-a)
     print("%d/%d"%(index, len(JAFFE)), personName, emotion)
