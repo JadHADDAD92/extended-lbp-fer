@@ -1,0 +1,39 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+JAFFE	../python/extract.py	/^JAFFE = load('..\/data\/JAFFE')$/;"	kind:variable	line:126
+LBPH	../python/extract.py	/^def LBPH(img, gridX, gridY):$/;"	kind:function	line:82
+a	../python/extract.py	/^    a = time()$/;"	kind:variable	line:128
+a	../python/learn.py	/^a = time()$/;"	kind:variable	line:32
+correct	../python/learn.py	/^        correct = np.sum(yTrue == yPred)$/;"	kind:variable	line:42
+cropFace	../python/extract.py	/^def cropFace(image):$/;"	kind:function	line:16
+data	../python/learn.py	/^data = [element[1] for element in processedJAFFE]$/;"	kind:variable	line:13
+directoryPath	../python/extract.py	/^directoryPath = "\/home\/jad\/Téléchargements\/jaffe"$/;"	kind:variable	line:121
+extract.py	../python/extract.py	1;"	kind:file	line:1
+extractFeature	../python/extract.py	/^def extractFeature(image):$/;"	kind:function	line:97
+features	../python/extract.py	/^features = []$/;"	kind:variable	line:124
+generatePattern	../python/extract.py	/^def generatePattern(matrix):$/;"	kind:function	line:61
+hvnLBPWithoutBorders	../python/extract.py	/^def hvnLBPWithoutBorders(image):$/;"	kind:function	line:65
+imgsPaths	../python/extract.py	/^imgsPaths = glob(directoryPath + '\/*.tiff')$/;"	kind:variable	line:122
+index	../python/extract.py	/^    index = index + 1$/;"	kind:variable	line:133
+index	../python/extract.py	/^index = 1$/;"	kind:variable	line:125
+kirsch	../python/extract.py	/^def kirsch(image):$/;"	kind:function	line:24
+labels	../python/learn.py	/^labels = [element[2] for element in processedJAFFE]$/;"	kind:variable	line:14
+learn.py	../python/learn.py	1;"	kind:file	line:1
+load	../python/storage.py	/^def load(filename):$/;"	kind:function	line:29
+models	../python/learn.py	/^models = []$/;"	kind:variable	line:31
+parameters	../python/learn.py	/^parameters = {$/;"	kind:variable	line:21
+parseJAFFEName	../python/extract.py	/^def parseJAFFEName(filename):$/;"	kind:function	line:115
+processedJAFFE	../python/learn.py	/^processedJAFFE = None$/;"	kind:variable	line:15
+processedJAFFE	../python/learn.py	/^processedJAFFE = load('..\/data\/5bf_kirsch_hvnLBP_JAFFE')$/;"	kind:variable	line:12
+random_state	../python/learn.py	/^                                                random_state=42)$/;"	kind:variable	line:19
+res	../python/extract.py	/^    res = [ personName, extractFeature(image), emotion ]$/;"	kind:variable	line:129
+save	../python/storage.py	/^def save(filename, myobj):$/;"	kind:function	line:7
+storage.py	../python/storage.py	1;"	kind:file	line:1
+svc	../python/learn.py	/^        svc = OneVsRestClassifier(SVC(random_state=0, decision_function_shape='ovr',$/;"	kind:variable	line:36
+test_size	../python/learn.py	/^                                                test_size=0.33,$/;"	kind:variable	line:18
+yPred	../python/learn.py	/^        yPred = np.array(yPred, dtype=np.unicode_)$/;"	kind:variable	line:41
+yTrue	../python/learn.py	/^        yTrue = np.array(yTrue, dtype=np.unicode_)$/;"	kind:variable	line:40

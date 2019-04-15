@@ -3,14 +3,9 @@
 from time import time
 import cv2
 import numpy as np
-from datetime import datetime
-from glob import glob
 from sklearn import svm
-from pathlib import Path
 from numba import jit
-from time import time
 from matplotlib import pyplot as plt
-from scipy.ndimage import convolve
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
 
@@ -176,22 +171,22 @@ def hvnLBPWithoutBorders(image):
             newImage[i-1, j-1] = generatePattern(hv)
     return newImage
 
-@jit(nopython=True)
+# @jit(nopython=True)
 def LBPH(image, gridX, gridY):
     """ generate LBP histogram
     """
     cellWidth = image.shape[1] // gridX
     cellHeight = image.shape[0] // gridY
     
-    feature = np.array((), dtype=np.uint8)
+    feature = np.array(())
     for x in range(0, gridX*cellWidth, cellWidth):
         for y in range(0, gridY*cellHeight, cellHeight):
             # extract cell
             subImg = image[y:y+cellHeight, x:x+cellWidth]
             # construct histogram
-            hist, _binEdge = np.histogram(subImg.ravel(), bins=256)
+            hist, _binEdge = np.histogram(subImg.ravel(), bins=256, range=[0, 255], density=True)
             # concatenate histograms 
-            feature = np.concatenate((feature, hist.astype(np.uint8)))
+            feature = np.concatenate((feature, hist))
     return feature
 
 def extractFeature(image):
@@ -200,16 +195,17 @@ def extractFeature(image):
     # preprocessing
     image = cv2.equalizeHist(image)
     for _ in range(5):
-        image = cv2.bilateralFilter(image, 9, 250, 250)
+        image = cv2.bilateralFilter(image, 5, 30, 20)
     # extract face
     image = cropFace(image)
     # rescale to 77x77 (without borders => 75x75)
-    image = rescale(image, 77.0/image.shape[0], anti_aliasing=True, multichannel=False)
-    # filteredImages = kirsch(image)
-    feature = np.array([], dtype=np.uint8)
-    # for _key, filteredImage in filteredImages.items():
-    lbp = hvnLBPWithoutBorders(image)
-    feature = np.concatenate((feature, LBPH(lbp, 25, 25)))
+    # image = rescale(image, 75.0/image.shape[0], anti_aliasing=True, multichannel=False, mode='constant')
+    filteredImages = kirsch(image)
+    # feature = np.array([], dtype=np.uint8)
+    feature = np.array(())
+    # feature = LBPH(local_binary_pattern(image, 8, 1), 25, 25)
+    for _key, filteredImage in filteredImages.items():
+        feature = np.concatenate((feature, LBPH(hvnLBPWithoutBorders(filteredImage), 18, 18)))
     return feature
 
 
@@ -218,9 +214,6 @@ def parseJAFFEName(filename):
     name, emotion = parts[0], parts[1]
     return name, emotion[:2]
 
-
-directoryPath = "/home/jad/Téléchargements/jaffe"
-imgsPaths = glob(directoryPath + '/*.tiff')
 
 features = []
 index = 1
@@ -233,6 +226,5 @@ for personName, emotion, img in JAFFE:
     print("%d/%d"%(index, len(JAFFE)), personName, emotion)
     index = index + 1
 
-now = datetime.now().isoformat()
-print('saving file: ', 'processedJAFFE%s'%now)
-save('../data/hvnLBP_JAFFE', features)
+print('saving file: ', '/data/kirsch_hvnLBP_JAFFE1')
+save('../data/kirsch_hvnLBP_JAFFE1', features)
