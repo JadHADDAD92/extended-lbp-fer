@@ -238,8 +238,7 @@ for personName, emotion, img in JAFFE:
                                       gridY=18)
     res = [ personName, extractedFeature, emotion ]
     features.append(res)
-    print(time()-a)
-    print("%d/%d"%(index, jaffeLength), personName, emotion)
+    print("%d/%d"%(index, jaffeLength), personName, emotion,  time()-a)
     index = index + 1
 
 filename = 'dLBP90_JAFFE1'
