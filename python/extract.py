@@ -5,7 +5,6 @@ import cv2
 import numpy as np
 from sklearn import svm
 from numba import jit
-from matplotlib import pyplot as plt
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
 
