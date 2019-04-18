@@ -106,10 +106,10 @@ def TLPPixel (centre, pixel, threshold):
     """ compute neighboor value for upper and lower
     """
     # -1
-    if(pixel + threshold < centre):
+    if pixel + threshold < centre:
         return np.array([0, 1], dtype=np.uint8)
     # 1
-    elif(pixel > threshold + centre):
+    elif pixel > threshold + centre:
         return np.array([1, 0], dtype=np.uint8)
     # 0
     else:
@@ -171,7 +171,6 @@ def hvnLBPWithoutBorders(image):
             newImage[i-1, j-1] = generatePattern(hv)
     return newImage
 
-# @jit(nopython=True)
 def LBPH(image, gridX, gridY):
     """ generate LBP histogram
     """
@@ -184,47 +183,67 @@ def LBPH(image, gridX, gridY):
             # extract cell
             subImg = image[y:y+cellHeight, x:x+cellWidth]
             # construct histogram
-            hist, _binEdge = np.histogram(subImg.ravel(), bins=256, range=[0, 255], density=True)
-            # concatenate histograms 
+            hist, _binEdge = np.histogram(subImg.ravel(), bins=256, range=[0, 255],
+                                          density=True)
+            # concatenate histograms
             feature = np.concatenate((feature, hist))
     return feature
 
-def extractFeature(image):
+
+def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, methodArgs={},
+                   gridX=18, gridY=18, rescaleImage=False):
     """ extract features from image
     """
+    feature = np.array(())
     # preprocessing
     image = cv2.equalizeHist(image)
-    for _ in range(5):
+    for _ in range(numBiFilter):
         image = cv2.bilateralFilter(image, 5, 30, 20)
     # extract face
     image = cropFace(image)
-    # rescale to 77x77 (without borders => 75x75)
-    # image = rescale(image, 75.0/image.shape[0], anti_aliasing=True, multichannel=False, mode='constant')
-    filteredImages = kirsch(image)
-    # feature = np.array([], dtype=np.uint8)
-    feature = np.array(())
-    # feature = LBPH(local_binary_pattern(image, 8, 1), 25, 25)
-    for _key, filteredImage in filteredImages.items():
-        feature = np.concatenate((feature, LBPH(hvnLBPWithoutBorders(filteredImage), 18, 18)))
+    
+    if rescaleImage:
+        # rescale to 77x77 if method used is hvnLBP (without borders => 75x75)
+        targetResolution = 77.0 if method==hvnLBPWithoutBorders else 75.0
+        image = rescale(image, targetResolution/image.shape[0], anti_aliasing=True,
+                        multichannel=False, mode='constant')
+    if kirschFilter:
+        filteredImages = kirsch(image)
+        for filteredImage in filteredImages.values():
+            lbpImage = method(filteredImage, **methodArgs)
+            if isinstance(lbpImage, list):
+                for lbpImg in lbpImage:
+                    feature = np.concatenate((feature, LBPH(method(lbpImg, **methodArgs),
+                                                            gridX, gridY)))
+            else:
+                feature = np.concatenate((feature, LBPH(method(lbpImage, **methodArgs),
+                                                        gridX, gridY)))
+    else:
+        feature = LBPH(method(image, **methodArgs), gridX, gridY)
     return feature
-
-
-def parseJAFFEName(filename):
-    parts = filename.split('.')
-    name, emotion = parts[0], parts[1]
-    return name, emotion[:2]
-
 
 features = []
 index = 1
 JAFFE = load('../data/JAFFE')
+jaffeLength = len(JAFFE)
 for personName, emotion, img in JAFFE:
     a = time()
-    res = [ personName, extractFeature(img), emotion ]
+    params = { "angle": 0 }
+    extractedFeature = extractFeature(img,
+                                      numBiFilter=1,
+                                      rescaleImage=False,
+                                      kirschFilter=True,
+                                      method=dLBP,
+                                      methodArgs=params,
+                                      gridX=18,
+                                      gridY=18)
+    res = [ personName, extractedFeature, emotion ]
     features.append(res)
     print(time()-a)
-    print("%d/%d"%(index, len(JAFFE)), personName, emotion)
+    print("%d/%d"%(index, jaffeLength), personName, emotion)
     index = index + 1
 
-print('saving file: ', '/data/kirsch_hvnLBP_JAFFE1')
-save('../data/kirsch_hvnLBP_JAFFE1', features)
+filename = 'dLBP90_JAFFE1'
+
+print('saving file: ', '/data/%s'%filename)
+save('../data/%s'%filename, features)
