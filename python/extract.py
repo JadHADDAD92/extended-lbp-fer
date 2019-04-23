@@ -212,13 +212,17 @@ def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, method
             lbpImage = method(filteredImage, **methodArgs)
             if isinstance(lbpImage, list):
                 for lbpImg in lbpImage:
-                    feature = np.concatenate((feature, LBPH(method(lbpImg, **methodArgs),
-                                                            gridX, gridY)))
+                    feature = np.concatenate((feature, LBPH(lbpImg, gridX, gridY)))
             else:
                 feature = np.concatenate((feature, LBPH(method(lbpImage, **methodArgs),
                                                         gridX, gridY)))
     else:
-        feature = LBPH(method(image, **methodArgs), gridX, gridY)
+        lbpImage = method(image, **methodArgs)
+        if isinstance(lbpImage, list):
+            for lbpImg in lbpImage:
+                feature = np.concatenate((feature, LBPH(lbpImg, gridX, gridY)))
+        else:
+            feature = LBPH(lbpImage, gridX, gridY)
     return feature
 
 features = []
