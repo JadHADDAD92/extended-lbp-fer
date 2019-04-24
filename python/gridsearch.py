@@ -61,7 +61,7 @@ def learn(filePath):
             print('C = %s \t gamma = %s'%(C, gamma))
             timeStart = time()
             svc = OneVsRestClassifier(SVC(random_state=0, decision_function_shape='ovr',
-                                        C=C, kernel='rbf', gamma=gamma), n_jobs=4)
+                                          C=C, kernel='rbf', gamma=gamma), n_jobs=4)
             svc.fit(xTrain, yTrain)
             yTrue, yPred = yTest, svc.predict(xTest)
             yTrue = np.array(yTrue, dtype=np.unicode_)
@@ -69,7 +69,7 @@ def learn(filePath):
             correct = np.sum(yTrue == yPred)
             
             print("accuracy: %d/%d = "%(correct, len(yTrue)),
-                D('%.2f'%(correct/len(yTrue)*100)))
+                  D('%.2f'%(correct/len(yTrue)*100)))
             row.append(D('%.2f'%(correct/len(yTrue)*100)))
             
             iterTime = time()-timeStart
