@@ -83,7 +83,7 @@ def learn(filePath):
     gridTime = timedelta(seconds=int(gridTime))
     print('time: %s'%str(gridTime))
     print('saving file: %s.csv'%filename)
-    with open('%s.csv'%filename, 'w') as csvFile:
+    with open('../csv/%s.csv'%filename, 'w') as csvFile:
         writer = csv.writer(csvFile)
         writer.writerows(models)
 
