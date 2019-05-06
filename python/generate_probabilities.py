@@ -9,6 +9,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from storage import load, save
 
+# pylint: disable=invalid-name
 def extractProbabilities(filePath, C, gamma):
     """ build dataset containing the probabilities of each class of every image
         in the test set from the original dataset

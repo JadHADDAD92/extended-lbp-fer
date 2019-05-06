@@ -3,7 +3,6 @@
 from time import time
 import cv2
 import numpy as np
-from sklearn import svm
 from numba import jit
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
@@ -13,8 +12,8 @@ from storage import save, load
 def cropFace(image):
     """ crop face from a given image
     """
-    faceClassifier = cv2.CascadeClassifier('../haarcascade/haarcascade_frontalface_alt.xml')
-    faces = faceClassifier.detectMultiScale(image)
+    fc = cv2.CascadeClassifier('../haarcascade/haarcascade_frontalface_alt.xml')
+    faces = fc.detectMultiScale(image)
     #get first face coordinates
     xFace, yFace, wFace, hFace = faces[0]
     croppedFace = image[yFace:yFace+hFace, xFace:xFace+wFace]
@@ -87,6 +86,7 @@ def dLBPPixel(image, angle):
            ((elements[4] > elements[1])<<6) + \
            ((elements[4] > elements[0])<<7)
 
+# pylint: disable=invalid-name
 @jit(nopython=True)
 def dLBP(image, angle=0):
     """ compute directional LBP
@@ -188,7 +188,7 @@ def LBPH(image, gridX, gridY):
             feature = np.concatenate((feature, hist))
     return feature
 
-
+# pylint: disable=dangerous-default-value, comparison-with-callable
 def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, methodArgs={},
                    gridX=18, gridY=18, rescaleImage=False):
     """ extract features from image

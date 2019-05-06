@@ -11,6 +11,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from storage import load
 
+# pylint: disable=invalid-name
 def generateClassesAccuracies(filePath):
     """ generate csv containing accuracy per class
     """
