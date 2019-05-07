@@ -1,10 +1,9 @@
 """ compute probabilities
 """
 import argparse
+from pprint import pprint
 from pathlib import Path
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from storage import load, save
@@ -20,27 +19,28 @@ def extractProbabilities(filePath, C, gamma):
     processedDF.columns = ['name', 'data', 'emotion']
     processedDF = processedDF.sort_values(by=['name', 'emotion'])
     grouped = processedDF.groupby(['name', 'emotion'])
+    
+    # extract train data
     train = grouped.nth([0, 1])
-    test = grouped.nth([2, 3, 4])
-
     yTrain = train.index.get_level_values(1).tolist()
     xTrain = train.values.ravel().tolist()
-    yTest = test.index.get_level_values(1).tolist()
-    xTest = test.values.ravel().tolist()
     
+    # train our model
     svc = OneVsRestClassifier(SVC(random_state=0, decision_function_shape='ovr',
                                   C=C, kernel='rbf', gamma=gamma, probability=True),
                               n_jobs=4)
     svc.fit(xTrain, yTrain)
+    
     classes = svc.classes_
-    probas = svc.predict_proba(xTest)
-    dataset = []
-    for index, proba in enumerate(probas):
-        dictProba = dict(zip(classes, proba))
-        dataset.append([dictProba, yTest[index]])
-    newFilename = filename+'_probabilities_testdata_c_%s_gamma_%s'%(C, gamma)
+    for index, (_name, data, _emotion) in enumerate(processedJAFFE):
+        proba = svc.predict_proba(data.reshape(1, -1))[0]
+        processedJAFFE[index][1] = dict(zip(classes, proba))
+        pprint(processedJAFFE[index])
+        print(svc.predict(data.reshape(1, -1)))
+        print('-'*50)
+    newFilename = filename+'_probabilities_c_%s_gamma_%s'%(C, gamma)
     print('saving file:', '/data/%s'%newFilename)
-    save('../data/probabilities/%s'%newFilename, dataset)
+    save('../data/probabilities/%s'%newFilename, processedJAFFE)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('file')
