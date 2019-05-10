@@ -8,13 +8,14 @@ from time import time
 import csv
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 from storage import load
 
+# pylint: disable=invalid-name
 def learn(filePath):
+    """ execute grid search and save results in csv
+    """
     filename = filePath.stem
     processedJAFFE = load(str(filePath))
     processedDF = pd.DataFrame(processedJAFFE)
@@ -48,7 +49,7 @@ def learn(filePath):
     }
 
     models = []
-    models.append(['gamma \ C', 1.00E-12, 1.00E-11, 1.00E-10, 1.00E-09, 1.00E-08,
+    models.append(['gamma \\ C', 1.00E-12, 1.00E-11, 1.00E-10, 1.00E-09, 1.00E-08,
                    1.00E-07, 1.00E-06, 1.00E-05, 1.00E-04, 1.00E-03, 2.00E-03, 1.00E-02,
                    1.00E-01, 1.00, 1.00E+01, 1.00E+02, 1.00E+03, 1.00E+04, 1.00E+05 ])
     gridTimeStart = time()

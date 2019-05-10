@@ -1,15 +1,10 @@
 """ learn module """
 
 from decimal import Decimal as D
-from time import time
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.svm import SVC
-from storage import load, save
+from storage import load
 
 processedJAFFE = load('../data/dLBP45_JAFFE(2)')
 processedDF = pd.DataFrame(processedJAFFE)
@@ -32,5 +27,4 @@ yTrue = np.array(yTrue, dtype=np.unicode_)
 yPred = np.array(yPred, dtype=np.unicode_)
 correct = np.sum(yTrue == yPred)
 
-print("accuracy: %d/%d = "%(correct, len(yTrue)),
-        D('%.2f'%(correct/len(yTrue)*100)))
+print("accuracy: %d/%d = "%(correct, len(yTrue)), D('%.2f'%(correct/len(yTrue)*100)))
