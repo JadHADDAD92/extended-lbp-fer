@@ -57,6 +57,16 @@ def maxResults(arrays):
     """
     return list(np.maximum.reduce(elems) for elems in zip(*arrays))
 
+def majVote(arrays):
+    """ majority vote
+    """
+    predictions = []
+    emotion =  ['AN', 'DI', 'FE', 'HA', 'NE', 'SA', 'SU']
+    for arr in zip(*arrays):
+        res = [np.argmax(elem) for elem in arr]
+        predictions.append(emotion[np.argmax(np.bincount(res))])
+    return predictions
+
 def meanResults(arrays):
     """ compute the average of the arrays
     """
