@@ -6,8 +6,15 @@ import numpy as np
 from numba import jit
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
+from enum import Enum
 
 from storage import save, load
+from facial_landmarks import FaceTools
+
+class LandmarkEnum(Enum):
+    DISTANCES = 0
+    POINTS = 1
+    BOTH = 2
 
 def cropFace(image):
     """ crop face from a given image
@@ -189,8 +196,8 @@ def LBPH(image, gridX, gridY):
     return feature
 
 # pylint: disable=dangerous-default-value, comparison-with-callable
-def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, methodArgs={},
-                   gridX=18, gridY=18, rescaleImage=False):
+def extractFeature(image, numBiFilter=1, kirschFilter=False, flandmarks=None, method=None,
+                   methodArgs={}, gridX=18, gridY=18, rescaleImage=False):
     """ extract features from image
     """
     feature = np.array(())
@@ -198,6 +205,7 @@ def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, method
     image = cv2.equalizeHist(image)
     for _ in range(numBiFilter):
         image = cv2.bilateralFilter(image, 5, 30, 20)
+    imageCopy = image.copy()
     # extract face
     image = cropFace(image)
     
@@ -223,19 +231,29 @@ def extractFeature(image, numBiFilter=1, kirschFilter=False, method=None, method
                 feature = np.concatenate((feature, LBPH(lbpImg, gridX, gridY)))
         else:
             feature = LBPH(lbpImage, gridX, gridY)
+    if flandmarks == LandmarkEnum.DISTANCES:
+        distances = ft.faceDistances(imageCopy)
+        feature = np.concatenate((feature, distances))
+    elif flandmarks == LandmarkEnum.BOTH:
+        landmarks = ft.landmarks(imageCopy)
+        distances = ft.faceDistances(imageCopy, landmarks=landmarks)
+        feature = np.concatenate((feature, landmarks))
+        feature = np.concatenate((feature, distances))
     return feature
 
 features = []
 index = 1
 JAFFE = load('../data/JAFFE')
 jaffeLength = len(JAFFE)
+ft = FaceTools(dimensions='3d')
 for personName, emotion, img in JAFFE:
     a = time()
-    params = { "angle": 0 }
+    params = { "angle": 90 }
     extractedFeature = extractFeature(img,
                                       numBiFilter=1,
                                       rescaleImage=False,
-                                      kirschFilter=True,
+                                      kirschFilter=False,
+                                      flandmarks=LandmarkEnum.DISTANCES,
                                       method=dLBP,
                                       methodArgs=params,
                                       gridX=18,
@@ -245,7 +263,7 @@ for personName, emotion, img in JAFFE:
     print("%d/%d"%(index, jaffeLength), personName, emotion,  time()-a)
     index = index + 1
 
-filename = 'dLBP90_JAFFE1'
+filename = 'dLBP90_landmarkDistances_points_3D_JAFFE'
 
 print('saving file: ', '/data/%s'%filename)
 save('../data/%s'%filename, features)
