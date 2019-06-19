@@ -26,7 +26,8 @@ class FaceTools:
         return self.faceAlignment.get_landmarks(img)[0]
     
     def faceDistances(self, img, landmarks=None):
-        """ calculate distances:
+        """ calculate distances as described in
+            'Automatic Facial Expression Recognition Using Combined Geometric Features':
             D1  Left eyebrow length
             D2  Right eyebrow length
             D3  Distance between left and right eyebrow
