@@ -1,20 +1,23 @@
 """ extract features
 """
 from time import time
+from enum import Enum
+
 import cv2
 import numpy as np
 from numba import jit
 from skimage.feature import local_binary_pattern
 from skimage.transform import rescale
-from enum import Enum
 
 from storage import save, load
 from facial_landmarks import FaceTools
 
 class LandmarkEnum(Enum):
+    """ Landmark enum
+    """
     DISTANCES = 0
-    POINTS = 1
-    BOTH = 2
+    COORDINATES = 1
+    GEOMETRIC1 = 2
 
 def cropFace(image):
     """ crop face from a given image
@@ -121,6 +124,7 @@ def TLPPixel (centre, pixel, threshold):
     else:
         return np.array([0, 0], dtype=np.uint8)
 
+#  pylint: disable=unsupported-assignment-operation
 @jit(nopython=True)
 def TLPBloc(arr, t):
     """ compute pixel value ternary local pattern
@@ -173,7 +177,7 @@ def hvnLBPWithoutBorders(image):
             #horizontal LBP
             hmat = mat == mat.max(axis=1).reshape(3, 1)
             
-            hv = np.maximum(vmat, hmat)
+            hv = np.maximum(vmat, hmat) # pylint: disable=assignment-from-no-return
             newImage[i-1, j-1] = generatePattern(hv)
     return newImage
 
@@ -205,7 +209,6 @@ def extractFeature(image, numBiFilter=1, kirschFilter=False, flandmarks=None, me
     image = cv2.equalizeHist(image)
     for _ in range(numBiFilter):
         image = cv2.bilateralFilter(image, 5, 30, 20)
-    imageCopy = image.copy()
     # extract face
     image = cropFace(image)
     
@@ -231,15 +234,28 @@ def extractFeature(image, numBiFilter=1, kirschFilter=False, flandmarks=None, me
                 feature = np.concatenate((feature, LBPH(lbpImg, gridX, gridY)))
         else:
             feature = LBPH(lbpImage, gridX, gridY)
-    if flandmarks == LandmarkEnum.DISTANCES:
-        distances = ft.faceDistances(imageCopy)
-        feature = np.concatenate((feature, distances))
-    elif flandmarks == LandmarkEnum.BOTH:
-        landmarks = ft.landmarks(imageCopy)
-        distances = ft.faceDistances(imageCopy, landmarks=landmarks)
-        feature = np.concatenate((feature, landmarks))
-        feature = np.concatenate((feature, distances))
     return feature
+
+def extractFlandmarks(image, numBiFilter=1, landmarkType=LandmarkEnum.COORDINATES):
+    """ extract facial landmarks characteristics
+    """
+    feature = np.array(())
+    # preprocessing
+    image = cv2.equalizeHist(image)
+    for _ in range(numBiFilter):
+        image = cv2.bilateralFilter(image, 5, 30, 20)
+    
+    coordinates = ft.landmarks(image)
+    if landmarkType == LandmarkEnum.COORDINATES:
+        feature = np.concatenate((feature, coordinates.flatten()))
+    elif landmarkType == LandmarkEnum.DISTANCES:
+        distances = ft.faceDistances(image, landmarks=coordinates)
+        feature = np.concatenate((feature, distances))
+    elif landmarkType == LandmarkEnum.GEOMETRIC1:
+        geometric1 = ft.geometricFeatures1(image, landmarks=coordinates)
+        feature = np.concatenate((feature, geometric1))
+    return feature
+
 
 features = []
 index = 1
@@ -248,22 +264,22 @@ jaffeLength = len(JAFFE)
 ft = FaceTools(dimensions='3d')
 for personName, emotion, img in JAFFE:
     a = time()
-    params = { "angle": 90 }
-    extractedFeature = extractFeature(img,
-                                      numBiFilter=1,
-                                      rescaleImage=False,
-                                      kirschFilter=False,
-                                      flandmarks=LandmarkEnum.DISTANCES,
-                                      method=dLBP,
-                                      methodArgs=params,
-                                      gridX=18,
-                                      gridY=18)
+    # params = { "angle": 90 }
+    # extractedFeature = extractFeature(img,
+    #                                   numBiFilter=1,
+    #                                   rescaleImage=False,
+    #                                   kirschFilter=False,
+    #                                   method=dLBP,
+    #                                   methodArgs=params,
+    #                                   gridX=18,
+    #                                   gridY=18)
+    extractedFeature = extractFlandmarks(img, landmarkType=LandmarkEnum.COORDINATES)
     res = [ personName, extractedFeature, emotion ]
     features.append(res)
     print("%d/%d"%(index, jaffeLength), personName, emotion,  time()-a)
     index = index + 1
 
-filename = 'dLBP90_landmarkDistances_points_3D_JAFFE'
+filename = 'coordinates_flandmark_3D_JAFFE'
 
 print('saving file: ', '/data/%s'%filename)
 save('../data/%s'%filename, features)
